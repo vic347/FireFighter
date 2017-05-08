@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2CC5FD00-167B-41F0-87D8-68D0F9B1DC63}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Firefighters</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v110</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>bin\$(Configuration)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(OGRE_HOME)\include\OGRE\Overlay;$(OGRE_HOME)\boost;$(OGRE_HOME)\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\Samples\Common\include;$(OGRE_HOME)\include\boost;$(OGRE_HOME)\include\OGRE\Overlay;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(OGRE_HOME)\lib\$(Configuration);$(OGRE_HOME)\boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OgreMain_d.lib;OIS_d.lib;OgreTerrain_d.lib;OgreOverlay_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(OutDir)\$(TargetFileName)" "$(OGRE_HOME)\Bin\$(Configuration)</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(OGRE_HOME)\include\OGRE\Overlay;$(OGRE_HOME)\boost;$(OGRE_HOME)\include;$(OGRE_HOME)\include\OIS;$(OGRE_HOME)\include\OGRE;$(OGRE_HOME)\Samples\Common\include;$(OGRE_HOME)\include\OGRE\Overlay;$(OGRE_HOME)\include\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(OGRE_HOME)\lib\$(Configuration);$(OGRE_HOME)\boost\lib;$(OGRE_HOME)\boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OgreMain.lib;OIS.lib;OgreOverlay.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "$(OutDir)\$(TargetFileName)" "$(OGRE_HOME)\Bin\$(Configuration)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="ActionTurnHandler.hpp" />
+    <ClInclude Include="AdvancedCamera.hpp" />
+    <ClInclude Include="AdvancedOgreFramework.hpp" />
+    <ClInclude Include="AppState.hpp" />
+    <ClInclude Include="AppStateManager.hpp" />
+    <ClInclude Include="Converter.h" />
+    <ClInclude Include="DebugOptions.hpp" />
+    <ClInclude Include="Door.hpp" />
+    <ClInclude Include="FireFactory.hpp" />
+    <ClInclude Include="FireTruck.hpp" />
+    <ClInclude Include="IMovableObject.hpp" />
+    <ClInclude Include="Pathfinder.hpp" />
+    <ClInclude Include="LevelGenerator.hpp" />
+    <ClInclude Include="Lighting.hpp" />
+    <ClInclude Include="ObjectManagement.hpp" />
+    <ClInclude Include="SelectSystem.hpp" />
+    <ClInclude Include="Command.hpp" />
+    <ClInclude Include="DotSceneLoader.hpp" />
+    <ClInclude Include="Fire.hpp" />
+    <ClInclude Include="FireFighter.hpp" />
+    <ClInclude Include="FirefighterApp.hpp" />
+    <ClInclude Include="FireFighterCommands.hpp" />
+    <ClInclude Include="FireFighterInputComponent.hpp" />
+    <ClInclude Include="GameObject.hpp" />
+    <ClInclude Include="GameState.hpp" />
+    <ClInclude Include="Grid.hpp" />
+    <ClInclude Include="GridCell.hpp" />
+    <ClInclude Include="Ground.hpp" />
+    <ClInclude Include="IGridObject.hpp" />
+    <ClInclude Include="InputComponent.hpp" />
+    <ClInclude Include="InputHandler.hpp" />
+    <ClInclude Include="MenuState.hpp" />
+    <ClInclude Include="PauseState.hpp" />
+    <ClInclude Include="PlayerPathing.hpp" />
+    <ClInclude Include="rapidxml.hpp" />
+    <ClInclude Include="Wall.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ActionTurnHandler.cpp" />
+    <ClCompile Include="AdvancedCamera.cpp" />
+    <ClCompile Include="AdvancedOgreFramework.cpp" />
+    <ClCompile Include="AppStateManager.cpp" />
+    <ClCompile Include="Converter.cpp" />
+    <ClCompile Include="DebugOptions.cpp" />
+    <ClCompile Include="Door.cpp" />
+    <ClCompile Include="FireFactory.cpp" />
+    <ClCompile Include="FireTruck.cpp" />
+    <ClCompile Include="IMovableObject.cpp" />
+    <ClCompile Include="Pathfinder.cpp" />
+    <ClCompile Include="LevelGenerator.cpp" />
+    <ClCompile Include="Lighting.cpp" />
+    <ClCompile Include="ObjectManagement.cpp" />
+    <ClCompile Include="SelectSystem.cpp" />
+    <ClCompile Include="Command.cpp" />
+    <ClCompile Include="DotSceneLoader.cpp" />
+    <ClCompile Include="Fire.cpp" />
+    <ClCompile Include="FireFighter.cpp" />
+    <ClCompile Include="FirefighterApp.cpp" />
+    <ClCompile Include="FireFighterCommands.cpp" />
+    <ClCompile Include="FireFighterInputComponent.cpp" />
+    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameState.cpp" />
+    <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="GridCell.cpp" />
+    <ClCompile Include="Ground.cpp" />
+    <ClCompile Include="IGridObject.cpp" />
+    <ClCompile Include="InputComponent.cpp" />
+    <ClCompile Include="InputHandler.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MenuState.cpp" />
+    <ClCompile Include="PauseState.cpp" />
+    <ClCompile Include="PlayerPathing.cpp" />
+    <ClCompile Include="Temp.cpp" />
+    <ClCompile Include="Wall.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="bin\Debug\media\levels\level1.txt" />
+    <None Include="ClassDiagram1.cd" />
+    <None Include="ClassDiagram2.cd" />
+    <Text Include="bin\Debug\media\levels\level2.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

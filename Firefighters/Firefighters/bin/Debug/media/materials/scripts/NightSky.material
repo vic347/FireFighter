@@ -1,0 +1,16 @@
+material NightSky
+{
+    technique
+    {
+        pass
+        {
+            lighting on
+            depth_write on
+            texture_unit
+            {
+                cubic_texture stevecube.jpg separateUV
+                tex_address_mode clamp
+            }
+        }
+    }
+}

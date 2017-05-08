@@ -1,0 +1,382 @@
+#include "SelectSystem.hpp"
+#include "AdvancedOgreFramework.hpp"
+#include "GameObject.hpp"
+#include "Fire.hpp"
+#include "FireFighter.hpp"
+#include "FireTruck.hpp"
+#include "GridCell.hpp"
+#include "Grid.hpp"
+#include "Pathfinder.hpp"
+#define _CRTDBG_MAP_ALLOC  
+#include "Door.hpp" 
+#include "ObjectManagement.hpp"
+#include "IMovableObject.hpp"
+#include "FireFighterCommands.hpp"
+
+
+using namespace Ogre;
+
+//TO DO
+//Implement this class in combination with a physics engine(Rigibody) in sprint 2.
+
+/** This class will handle selecting objects and creating/deleting action buttons.
+*
+*/
+
+/** Ray cast from the mouse pointer to objects on left click, and store the first detected object into private variables.
+ * @param mouseEvent get the mouse. 
+ * @param camera get the mouse postition from the camera view.
+ * @param sceneManager create a ray query from the scene manager.
+ */
+void SelectSystem::onLeftPressed(const OIS::MouseEvent &mouseEvent, Ogre::Camera* camera, Ogre::SceneManager* sceneManager)
+{
+	Ogre::Ray mouseRay = camera->getCameraToViewportRay(OgreFramework::getSingletonPtr()->m_pMouse->getMouseState().X.abs / float(mouseEvent.state.width),
+		OgreFramework::getSingletonPtr()->m_pMouse->getMouseState().Y.abs / float(mouseEvent.state.height));
+	raySceneQuery = sceneManager->createRayQuery(mouseRay); //create a query
+	raySceneQuery->setRay(mouseRay); //store the query with data from the mouse ray
+	raySceneQuery->setQueryMask(fireFighterSelected ? GROUND_MASK | FIRE_MASK | IGNORE_QUERY_FLAG | DOOR_MASK | FIRETRUCK_MASK : FIREFIGHTER_MASK);
+
+	//check if the query is empty
+	if (raySceneQuery->execute().size() <= 0)
+	{
+		return;
+	}
+
+	raySceneQuery->setSortByDistance(true);
+	Ogre::RaySceneQueryResult &result = raySceneQuery->execute();
+	Ogre::RaySceneQueryResult::iterator itr = result.begin();
+	setInteraction(false);
+
+	//Find the first detected object
+	for (itr; itr != result.end(); itr++)
+	{
+		if(itr->movable->getQueryFlags() == IGNORE_QUERY_FLAG)
+		{
+			break;
+		}
+
+		interactable =
+			itr->movable &&
+			itr->movable->getName() != "GameCamera" &&
+			itr->movable->getName() != "";
+		break;
+	}
+
+	if (interactable)
+	{
+		if (!fireFighterSelected)
+		{
+			firstSelectedSceneNode = itr->movable->getParentSceneNode();
+			firstSelectedSceneNode->showBoundingBox(true);
+			fireFighterSelected = true;
+			
+			firstSelectedGameObject = any_cast<GameObject*>(itr->movable->getUserAny());
+		}
+		else
+		{
+			deSelectOtherObject();
+			secondSelectedSceneNode = itr->movable->getParentSceneNode();
+			secondSelectedSceneNodeFlags = itr->movable->getQueryFlags();
+			secondSelectedSceneNode->showBoundingBox(true);
+			try{
+				secondSelectedGameObject = any_cast<GameObject*>(itr->movable->getUserAny());
+			}
+			catch(std::exception& e)
+			{
+				// Selected ground lelz
+			}
+			createActionButton();
+		}
+	}
+}
+
+/**initilize Ray Scene Query at the start of the scene in GameState.
+ */
+void SelectSystem::initRaySceneQuery()
+{
+	firstSelectedSceneNode = 0;
+	secondSelectedSceneNode = 0;
+	fireFighterSelected = false;
+	actionButtonIsVisible = false;
+}
+
+/** Removing node reference from the other selectable object apart from the firefghter.
+ */
+void SelectSystem::deSelectOtherObject()
+{
+	if (secondSelectedSceneNode != nullptr) //if itsn't null
+	{
+		if (getSecondSceneNode()->getShowBoundingBox())
+		{
+			secondSelectedSceneNode->showBoundingBox(false);
+		}//end getshowboundingbox
+		secondSelectedSceneNode = nullptr;
+		secondSelectedSceneNodeFlags = NULL;
+		secondSelectedGameObject = nullptr;
+		removeActionButton();
+	}
+}
+
+/** Removing node reference from the selected firefgihter object.
+ */
+void SelectSystem::deSelectFireFighter()
+{
+	if (firstSelectedSceneNode != nullptr)
+	{
+		firstSelectedSceneNode->showBoundingBox(false);
+		firstSelectedSceneNode = nullptr;
+		fireFighterSelected = false;
+		firstSelectedGameObject = nullptr;
+	}
+}
+
+
+//DO TO 
+//MOVE TO ANOTHER CLASS
+//BEGIN
+
+/** Create a button for movement.
+*/
+void SelectSystem::createActionButton() 
+{
+	// Grid position
+	if (secondSelectedSceneNodeFlags == GROUND_MASK && !actionButtonIsVisible)
+	{
+		OgreFramework::getSingletonPtr()->m_pTrayMgr->createButton(OgreBites::TL_LEFT, "Move", "Move", 250);
+		actionButtonIsVisible = true;
+	}
+
+	// Fire
+	else if (secondSelectedSceneNodeFlags == FIRE_MASK && !actionButtonIsVisible)
+	{
+	bool canExtinguish = SelectSystem::canExtinguish();
+
+		if(canExtinguish)
+		{
+			OgreFramework::getSingletonPtr()->m_pTrayMgr->createButton(OgreBites::TL_LEFT, "Extinguish", "Extinguish", 250);
+			actionButtonIsVisible = true; 
+		}
+	}
+	
+	// Door
+	else if (secondSelectedSceneNodeFlags == DOOR_MASK && !actionButtonIsVisible)
+	{
+		bool canOpenOrCloseDoor = SelectSystem::canOpenOrCloseDoor();
+
+		if(canOpenOrCloseDoor)
+		{
+			if (dynamic_cast<Door*>(secondSelectedGameObject)->getIsOpen()) //if door is open -> close door
+			{
+				OgreFramework::getSingletonPtr()->m_pTrayMgr->createButton(OgreBites::TL_LEFT, "CloseDoor", "Close Door", 250);
+				actionButtonIsVisible = true;
+			} 
+
+			else //if door is closed -> open door	
+			{	
+				OgreFramework::getSingletonPtr()->m_pTrayMgr->createButton(OgreBites::TL_LEFT, "OpenDoor", "Open Door", 250);
+				actionButtonIsVisible = true;
+			}
+		}		
+	}
+
+	// FireTruck
+	else if (SelectSystem::isNextToAFireTruck())//secondSelectedSceneNodeFlags == FIRETRUCK_MASK
+	{
+		OgreFramework::getSingletonPtr()->m_pTrayMgr->createButton(OgreBites::TL_LEFT, "ReFill", "Refill", 250);
+		actionButtonIsVisible = true;
+	}// end FireTruck
+}
+
+/**	canExtinguish()
+*
+*	This method checks if the selected fire can be extinguished.
+*
+*/
+bool SelectSystem::canExtinguish()
+{
+	// Firefighter position
+	FireFighter *fireFighter = dynamic_cast<FireFighter*>(firstSelectedGameObject);
+	Ogre::Vector2 ffPos = fireFighter->getGridPosition();
+
+	// Fire position
+	Fire *fire = dynamic_cast<Fire*>(secondSelectedGameObject);
+	Ogre::Vector2 fPos = fire->getGridPosition();
+
+	// Logic. When the FF is closer than 2 cells, he can extinguish. 
+	if (ffPos.x == fPos.x || ffPos.y == fPos.y)
+	{
+		if(ffPos.x <= fPos.x + 2 && ffPos.x >= fPos.x - 2 && ffPos.y <= fPos.y + 2 && ffPos.y >= fPos.y - 2)
+			return true; 
+		else 
+			return false;
+	}
+	else
+	return false;
+}
+
+/**	isNextToAFireTruck()
+*
+*	This method checks if the selected firetruck is next to a firefighter
+*
+*/
+bool SelectSystem::isNextToAFireTruck()
+{
+	// Firefighter position
+	FireFighter *fireFighter = dynamic_cast<FireFighter*>(firstSelectedGameObject);
+	Ogre::Vector2 ffPos = fireFighter->getGridPosition();
+
+	// FireTruck position
+	FireTruck *fireTruck = dynamic_cast<FireTruck*>(secondSelectedGameObject);
+	Ogre::Vector2 ftPos = fireTruck->getGridPosition();
+
+	// Logic. When the FF is closer than 2 cells, he can extinguish. 
+	if (ffPos.x == ftPos.x || ffPos.y == ftPos.y)
+	{
+		if (ffPos.x <= ftPos.x + 2 && ffPos.x >= ftPos.x - 2 && ffPos.y <= ftPos.y + 2 && ffPos.y >= ftPos.y - 2)
+			return true;
+		else
+			return false;
+	}
+	else
+		return false;
+}
+
+/**	canOpenOrCloseDoor()
+*
+*	This method checks if the selected door can be opened or closed.
+*	
+*/
+bool SelectSystem::canOpenOrCloseDoor()
+{
+	// Door position
+	Door *door = dynamic_cast<Door*>(secondSelectedGameObject);
+	Ogre::Vector2 doorPos = door->getGridPosition();
+
+	// FireFighter position
+	FireFighter *fireFighter = dynamic_cast<FireFighter*>(firstSelectedGameObject);
+	Ogre::Vector2 ffPos = fireFighter->getGridPosition();
+
+	// Logic. When the FF is next to a door he can open/close it. 
+	if(ffPos.x == doorPos.x + 1 || ffPos.x == doorPos.x -1)
+		return true;
+	else if (ffPos.y == doorPos.y +1 || ffPos.y == doorPos.y -1)
+		return true;
+
+	else 
+		return false;
+}
+
+
+/** Remove the movement button.
+ */
+void SelectSystem::removeActionButton()
+{
+	try
+	{
+		OgreFramework::getSingletonPtr()->m_pTrayMgr->destroyAllWidgetsInTray(OgreBites::TL_LEFT);
+		actionButtonIsVisible = false;
+	}
+	catch (Ogre::Exception &e)
+	{
+		//catch stuff here plox
+	}
+}
+
+/** This is a link between the button action handler and the pathfinding function.
+ * @param button check if the selected button is the same as required button with string
+ */
+void SelectSystem::command(OgreBites::Button* button)
+{
+	if(button == OgreFramework::getSingletonPtr()->m_pTrayMgr->getWidget("Move")) //check if the movement button exits
+	{
+		std::vector<Ogre::Vector2> path = Pathfinder::getSingletonPtr()->FindPath(
+			&(Grid::getSingletonPtr()->grid[static_cast<int>(firstSelectedGameObject->getGridPosition().x)]
+			[static_cast<int>(firstSelectedGameObject->getGridPosition().y)]),
+			&(Grid::getSingletonPtr()->grid[static_cast<int>(secondSelectedGameObject->getGridPosition().x)]
+				[static_cast<int>(secondSelectedGameObject->getGridPosition().y)]));
+		FireFighter* fireFighter = static_cast<FireFighter*>(firstSelectedGameObject);
+		fireFighter->setResultPath(path);
+		//fireFighter->update(0.01f);
+
+
+	}
+	else if (button == OgreFramework::getSingletonPtr()->m_pTrayMgr->getWidget("Extinguish")) //check if extinguish button exits
+	{
+<<<<<<< HEAD
+		//Move/pathfinding functie must be called here
+
+		//check if firefighter has enough extinghuiserFoam
+		FireFighter* fireFighter = dynamic_cast<FireFighter*>(firstSelectedGameObject);
+		if(fireFighter){
+			int amountOfFoam = fireFighter->getExtinguisherFoam();
+			if(amountOfFoam >= 20){
+				//subtract the amount of foam
+				fireFighter->subtractExtinguisherFoam(20);
+				//FireFighter* fireFighter = dynamic_cast<FireFighter*>(firstSelectedGameObject);
+				//fireFighter->emitFoamParticle();
+
+				////delete fire;
+				//Fire* fire = dynamic_cast<Fire*>(secondSelectedGameObject);
+				inputHandler->objectDeleteObject(firstSelectedGameObject, secondSelectedGameObject);
+
+				deSelectOtherObject();
+				deSelectFireFighter();
+				//fire->~Fire();
+=======
+		//FireFighter* fireFighter = dynamic_cast<FireFighter*>(firstSelectedGameObject);
+		//fireFighter->emitFoamParticle();
+
+		////delete fire;
+		//Fire* fire = dynamic_cast<Fire*>(secondSelectedGameObject);
+		inputHandler->objectDeleteObject(firstSelectedGameObject, secondSelectedGameObject);
+		deSelectOtherObject();
+		deSelectFireFighter();
+		//fire->~Fire();
+>>>>>>> develop
+		
+				OutputDebugStringW(L"Extinguish\n");
+			} else{
+				OutputDebugStringW(L"FireFighter is out of extinguisher foam\n");
+			}
+		}//if fireFighter has a succesfull cast
+	}
+	else if (button == OgreFramework::getSingletonPtr()->m_pTrayMgr->getWidget("OpenDoor"))
+	{
+		Door* door = dynamic_cast<Door*>(secondSelectedGameObject);
+		deSelectOtherObject();
+		door->setIsOpen(true);
+		door->openDoor();
+		door->SetCost(0);
+		Grid::getSingletonPtr()->updatePassables();
+		OutputDebugStringW(L"Opens door\n");
+	}
+	else if (button == OgreFramework::getSingletonPtr()->m_pTrayMgr->getWidget("CloseDoor"))
+	{
+		Door* door = dynamic_cast<Door*>(secondSelectedGameObject);
+		deSelectOtherObject();
+		door->setIsOpen(false);
+		door->closeDoor();
+		door->SetCost(-1);
+		Grid::getSingletonPtr()->updatePassables();
+		OutputDebugStringW(L"Closes door\n");
+	}
+	else if (button == OgreFramework::getSingletonPtr()->m_pTrayMgr->getWidget("ReFill"))
+	{
+		FireFighter* fireFighter = dynamic_cast<FireFighter*>(firstSelectedGameObject);
+		if(fireFighter){
+			int amountOfFoam = fireFighter->getExtinguisherFoam();
+			if(amountOfFoam < fireFighter->getMaxiumumCapacityOfExtinguisherFoam()){ //check if the amountOfFoam is less then maximum cappacity
+				
+				//fill the amount of foam
+				fireFighter->addExtinguisherFoam(fireFighter->getMaxiumumCapacityOfExtinguisherFoam() - amountOfFoam);
+				//insert here the subtracting foam amount from FireTruck
+
+				OutputDebugStringW(L"Add fire extingshuiser fuell\n");
+			} else{
+				OutputDebugStringW(L"FireFighter is already full with extinguisher foam\n");
+			}
+		}//if fireFighter has a succesfull cast
+		OutputDebugStringW(L"Refill player extingshuiser \n");
+	}
+}
+//END

@@ -1,0 +1,32 @@
+
+#pragma once
+
+#include "AdvancedOgreFramework.hpp"
+#include "Grid.hpp"
+
+class FireFactory {
+public:
+    FireFactory();
+    ~FireFactory();
+
+    Ogre::Vector2 getPathing(Ogre::Vector2 currentPosition, int moveNumber);
+    void setFire(Ogre::Vector2 currentPosition);
+	bool noFireDetected(Ogre::Vector2 nextPosition);
+
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/feature/Player_Pathfinding
+protected:
+    int intensity;
+
+private:
+	//int *moveNumberStart;
+
+	struct Pos
+	{
+		int x;
+		int y;
+	};
+};
+

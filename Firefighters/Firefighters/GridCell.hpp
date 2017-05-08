@@ -1,0 +1,63 @@
+#ifndef __GridCell_hpp_
+#define __GridCell_hpp_
+
+#include "AdvancedOgreFramework.hpp"
+#include "OgreSceneManager.h"
+#include "IGridObject.hpp"
+#include "GameObject.hpp"
+#include <vector>
+
+/** A class to hold information for a single square in the game grid. */
+class GridCell// : public GameObject
+{
+public:
+	// Constructors/Desctructors
+	GridCell();
+	GridCell(int& gridPosX, int& gridPosY, float& worldPosX, float& worldPosZ, Ogre::SceneManager* pSceneManager);
+	~GridCell(void);
+
+	// Constants
+	static const int GRID_CELL_SIZE = 128; /** A Constant for the size of a singe grid cell */
+	static const int GRID_CELL_SEGMENTS = 1; /** A constant for the amount of vertices used */
+	static const int DEFAULT_COST = 1; /** Default pathfinding cost of a GridCell */
+
+	// Member Functions
+	Ogre::SceneNode* GetSceneNodePtr();
+	Ogre::Vector3 GetWorldPosition();
+
+	int GetPathCost();
+	int GetPathCostFire();
+	int GetGridCellPositionX();
+	int GetGridCellPositionY();
+	int getFScore();
+	int getGScore();
+	int getGScore(GridCell gridcell);
+	int getHScore();
+	Ogre::Vector2 GetGridPosition();
+
+	bool getOpen();
+	void setOpen(bool value);
+	bool getClosed();
+	void setClosed(bool value);
+	bool getPassable();
+	void setPassable(bool value);
+
+	void SetPathCost(int value);
+	void SetPathCostFire(int value);
+	void AddObject(IGridObject* obj);
+	std::vector<IGridObject*> GetGridObjectList();
+
+private:
+	// Member variables
+	Ogre::SceneNode* m_pNode; /** pointer to a SceneNode associated with the Gridcell */
+	int m_PathingCost; /** The total pathfinding cost of this Cell */
+	int pathingCostFire; /** The total pathfinding cost of this cell for fire*/
+	std::vector<IGridObject*> m_pGridObjects; /** A list of pointers to all GridObjects connected to this cell */
+	Ogre::Vector2 gridPosition; /** The position in the grid */
+	bool open; /** A bool to check if it is open */
+	bool closed; /** A bool to check if it is closed */
+	bool walkable; /** A bool to check if it is walkable */
+	int fScore, gScore, hScore; /** The scores for the pathfinding algorithm */
+};
+
+#endif
