@@ -9,7 +9,7 @@ ActionTurnHandler::ActionTurnHandler(int playerTurnorder, int flameTurnorder, in
 	nTurnsOrder = 0;
 	if (playerTurnorder != -1) { nTurnsOrder++; }
 	if (flameTurnorder != -1) { nTurnsOrder++; }
-	if (npcTurnorder != -1) { nTurnsOrder++;}
+	if (npcTurnorder != -1) { nTurnsOrder++; }
 
 	turnOrder.resize(nTurnsOrder); //sets correct size
 

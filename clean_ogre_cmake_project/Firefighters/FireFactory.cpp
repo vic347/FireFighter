@@ -3,7 +3,6 @@
 #include "Wall.hpp"
 #include "PlayerPathing.hpp"
 #include "random"
-#include <time.h>
 #include <stdlib.h>
 
 FireFactory::FireFactory()
@@ -43,9 +42,7 @@ Ogre::Vector2 FireFactory::getLowestCostOfNeighbourPosition(Ogre::Vector2 curren
 	const int numberOfPossibleDirections = 4;
 	Ogre::Vector2 nextMove;
 	Pos direction[numberOfPossibleDirections] = {{0,-1},{0,1},{1,0},{-1,0}};
-	int a, b, finalPositionX, finalPositionY;
-	b = 9999;
-	a = b;
+	int lowestCost, neighbourCost, finalPositionX, finalPositionY;
 	finalPositionX = -1;
 	finalPositionY = -1;
 
@@ -64,11 +61,11 @@ Ogre::Vector2 FireFactory::getLowestCostOfNeighbourPosition(Ogre::Vector2 curren
 			continue;
 		}
 
-		b = Grid::getSingletonPtr()->grid[(int)nextMove.x][(int)nextMove.y].GetPathCostFire();
+		neighbourCost = Grid::getSingletonPtr()->grid[(int)nextMove.x][(int)nextMove.y].GetPathCostFire();
 
-		if (a > b)
+		if (lowestCost > neighbourCost)
 		{
-			a = b;
+			lowestCost = neighbourCost;
 			finalPositionX = nextMove.x;
 			finalPositionY = nextMove.y;
 		}
